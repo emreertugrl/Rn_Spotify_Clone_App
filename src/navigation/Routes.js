@@ -27,7 +27,8 @@ export default function Routes() {
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
-        }}>
+        }}
+        initialRouteName="Liked">
         <Stack.Screen name="Login" component={LoginScreen} />
         {/* <Stack.Screen name="Main" component={BottomTabs} /> */}
         <Stack.Screen name="Liked" component={LikedSongScreen} />
