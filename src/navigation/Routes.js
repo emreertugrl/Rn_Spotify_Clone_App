@@ -30,7 +30,7 @@ export default function Routes() {
         }}
         initialRouteName="Login">
         <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Main" component={HomeScreen} />
+        <Stack.Screen name="Main" component={BottomTabs} />
         <Stack.Screen name="Liked" component={LikedSongScreen} />
         <Stack.Screen name="Info" component={SongInfoScreen} />
       </Stack.Navigator>
