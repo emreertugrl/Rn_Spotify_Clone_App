@@ -2,8 +2,10 @@ import {Pressable, SafeAreaView, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import {Facebook, Google, Mobile, Spotify} from 'iconsax-react-native';
+import {useNavigation} from '@react-navigation/native';
 
 const LoginScreen = () => {
+  const navigation = useNavigation();
   return (
     <LinearGradient colors={['#040306', '#131624']} style={{flex: 1}}>
       <SafeAreaView>
@@ -16,7 +18,9 @@ const LoginScreen = () => {
         </Text>
 
         <View style={{height: 80}} />
-        <Pressable style={styles.loginButton}>
+        <Pressable
+          style={styles.loginButton}
+          onPress={() => navigation.navigate('Main')}>
           <Text>Sign In with Spotift</Text>
         </Pressable>
         <Pressable style={styles.phoneButton}>
