@@ -1,10 +1,11 @@
-import {View, Text} from 'react-native';
 import React from 'react';
+import Navigation from './src/navigation/Routes';
+import {SafeAreaView} from 'react-native';
 
 export default function App() {
   return (
-    <View>
-      <Text>App 1</Text>
-    </View>
+    <SafeAreaView style={{flex: 1}}>
+      <Navigation />
+    </SafeAreaView>
   );
 }
