@@ -1,11 +1,13 @@
 import React from 'react';
 import Navigation from './src/navigation/Routes';
-import {SafeAreaView} from 'react-native';
+import {SongProvider} from './src/context/SongContext';
 
 export default function App() {
   return (
     <>
-      <Navigation />
+      <SongProvider>
+        <Navigation />
+      </SongProvider>
     </>
   );
 }
