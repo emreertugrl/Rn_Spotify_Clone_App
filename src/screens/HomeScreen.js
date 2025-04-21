@@ -6,14 +6,21 @@ import {
   Text,
   View,
 } from 'react-native';
-import React from 'react';
+import React, {useContext} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import {Flash, Heart} from 'iconsax-react-native';
 import {useNavigation} from '@react-navigation/native';
-import RecentlyPlayedCard from '../components/RecentlyPlayedCard';
+import {AlbumsContext} from '../context/AlbumsContext';
+import AlbumCard from '../components/AlbumCard';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
+  const {
+    albums,
+    loading: albumsLoading,
+    errors: albumsErrors,
+  } = useContext(AlbumsContext);
+
   return (
     <LinearGradient colors={['#040306', '#131624']} style={{flex: 1}}>
       <ScrollView
@@ -118,17 +125,12 @@ const HomeScreen = () => {
 
           <View style={{height: 10}} />
 
-          <Text style={styles.sectionTitle}>Recently Played</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <RecentlyPlayedCard />
-          </ScrollView>
-
           <Text style={styles.sectionTitle}>Popular Albums</Text>
           {/* flatliste çevrilecek */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {/* {albums?.map((album, index) => (
+            {albums?.map((album, index) => (
               <AlbumCard album={album} key={index} />
-            ))} */}
+            ))}
           </ScrollView>
         </View>
       </ScrollView>
