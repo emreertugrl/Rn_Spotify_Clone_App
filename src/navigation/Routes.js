@@ -16,17 +16,18 @@ const BottomTabs = () => {
     <Tab.Navigator
       screenOptions={{
         tabBarStyle: {
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          shadowOpacity: 4,
+          backgroundColor: '#131624',
+          shadowOpacity: 0.3,
           shadowRadius: 4,
           shadowOffset: {
             width: 0,
-            height: -4,
+            height: -10,
           },
           position: 'absolute',
           bottom: 0,
           left: 0,
           right: 0,
+          height: 85,
           borderTopWidth: 0,
         },
       }}>

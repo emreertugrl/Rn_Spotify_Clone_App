@@ -16,7 +16,9 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   return (
     <LinearGradient colors={['#040306', '#131624']} style={{flex: 1}}>
-      <ScrollView>
+      <ScrollView
+        // style={{marginTop: 50}}
+        contentContainerStyle={{paddingBottom: 100}}>
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <Image
@@ -52,7 +54,7 @@ const HomeScreen = () => {
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}>
-                <Heart color="white" size={24} />
+                <Heart color="white" size={24} variant="Bold" />
               </Pressable>
             </LinearGradient>
 
