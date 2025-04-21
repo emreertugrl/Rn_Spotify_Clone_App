@@ -14,6 +14,8 @@ import {AlbumsContext} from '../context/AlbumsContext';
 import AlbumCard from '../components/AlbumCard';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
+import {ArtistsContext} from '../context/ArtistContext';
+import ArtistCard from '../components/ArtistCard';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -22,6 +24,11 @@ const HomeScreen = () => {
     loading: albumsLoading,
     errors: albumsErrors,
   } = useContext(AlbumsContext);
+  const {
+    artists,
+    loading: artistsLoading,
+    errors: artistsErrors,
+  } = useContext(ArtistsContext);
 
   return (
     <LinearGradient colors={['#040306', '#131624']} style={{flex: 1}}>
@@ -127,9 +134,9 @@ const HomeScreen = () => {
             <Text style={styles.sectionTitle}>Your Top Artists</Text>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {/* {artists?.map((artist, index) => (
-              <ArtistCard key={index} artist={artist} />
-            ))} */}
+              {artists?.map((artist, index) => (
+                <ArtistCard key={index} artist={artist} />
+              ))}
             </ScrollView>
 
             <View style={{height: 10}} />

@@ -1,15 +1,15 @@
 import Navigation from './src/navigation/Routes';
-import {SongProvider} from './src/context/SongContext';
+import {ArtistsProvider} from './src/context/ArtistContext';
 import {AlbumsProvider} from './src/context/AlbumsContext';
 
 export default function App() {
   return (
     <>
-      <SongProvider>
-        <AlbumsProvider>
+      <AlbumsProvider>
+        <ArtistsProvider>
           <Navigation />
-        </AlbumsProvider>
-      </SongProvider>
+        </ArtistsProvider>
+      </AlbumsProvider>
     </>
   );
 }

@@ -7,14 +7,12 @@ export default function ArtistCard({artist}) {
       <View style={styles.artistContainer}>
         <Image
           source={{
-            uri:
-              artist.data.visuals.avatarImage.sources[0].url ||
-              'https://picsum.photos/200/300',
+            uri: artist.data.visuals.avatarImage.sources[0].url,
           }}
           style={styles.artistImage}
         />
         <Text numberOfLines={1} style={styles.artistName}>
-          {artist.data.profile.name || 'Artist'}
+          {artist.data.profile.name}
         </Text>
       </View>
     </TouchableOpacity>
