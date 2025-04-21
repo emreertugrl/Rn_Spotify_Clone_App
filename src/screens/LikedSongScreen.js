@@ -2,15 +2,15 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import {
   ArrowCircleDown,
@@ -32,182 +32,179 @@ import {
 } from 'iconsax-react-native';
 import {useNavigation} from '@react-navigation/native';
 import SongItem from '../components/SongItem';
-import {ModalContent} from 'react-native-modals';
+import axios from 'axios';
+import ReactNativeModal from 'react-native-modal';
 
 const LikedSongScreen = () => {
   const navigation = useNavigation();
+  const [searchText, setSearchText] = useState('Türkiye de Popüler Müzikler');
   const [searchedTracks, setSearchedTracks] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+
+  const handleSearch = async () => {
+    setLoading(true);
+    const options = {
+      method: 'GET',
+      url: 'https://shazam.p.rapidapi.com/search',
+      params: {
+        term: searchText,
+        locale: 'tr-TR',
+        offset: '0',
+        limit: '5',
+      },
+      headers: {
+        'x-rapidapi-key': 'eed126f9bcmshc5525da323f2af8p1ab61fjsn34753381407b',
+        'x-rapidapi-host': 'shazam.p.rapidapi.com',
+      },
+    };
+
+    try {
+      const response = await axios.request(options);
+      setSearchedTracks(response.data.tracks.hits);
+      setLoading(false);
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+    }
+  };
+
+  const handlePlay = async track => {
+    console.log('Tıklandı', track);
+    console.log(modalVisible);
+    const trackData = {
+      id: track.track.key,
+      url: track.track.hub.actions.find(action => action.type === 'uri').uri, // ses dosyasının urli
+      title: track.track.title,
+      artist: track.track.subtitle,
+      artwork: track.track.images.coverart,
+    };
+    try {
+      // await TrackPlayer.reset();
+      // await TrackPlayer.add(trackData);
+      // await TrackPlayer.play();
+      // setSelectedTrack(track.track);
+      setModalVisible(true);
+      setIsPlaying(true);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    handleSearch();
+  }, []);
+
   return (
     <>
       <LinearGradient colors={['#614385', '#516395']} style={{flex: 1}}>
         <ScrollView style={{flex: 1, marginTop: 10}}>
-          <Pressable
-            onPress={() => navigation.goBack()}
-            style={{marginHorizontal: 10}}>
-            <ArrowLeft size="24" color="white" />
-          </Pressable>
-
-          <Pressable
+          <View
             style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginHorizontal: 10,
-              marginTop: 10,
             }}>
+            <Pressable
+              onPress={() => navigation.goBack()}
+              style={{marginHorizontal: 10}}>
+              <ArrowLeft size="24" color="white" />
+            </Pressable>
+
             <Pressable
               style={{
                 flexDirection: 'row',
+                justifyContent: 'space-between',
                 alignItems: 'center',
-                gap: 10,
-                paddingHorizontal: 9,
-                flex: 1,
-                backgroundColor: '#42275a',
-                borderRadius: 3,
-                height: 40,
-              }}>
-              <SearchNormal1 size="20" color="white" />
-              <TextInput
-                placeholderTextColor={'white'}
-                style={{fontWeight: '500', color: 'white'}}
-                placeholder="Find in liked songs"
-              />
-            </Pressable>
-            <Pressable
-              style={{
                 marginHorizontal: 10,
-                backgroundColor: '#42275a',
-                padding: 10,
-                borderRadius: 3,
-                height: 40,
+                marginTop: 10,
               }}>
-              <Text style={{color: 'white'}}>Sort</Text>
+              <Pressable
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 10,
+                  paddingHorizontal: 9,
+                  backgroundColor: '#42275a',
+                  borderRadius: 3,
+                  height: 40,
+                }}>
+                <SearchNormal1 size="20" color="white" />
+                <TextInput
+                  placeholderTextColor={'white'}
+                  style={{fontWeight: '500', width: '85%', color: 'white'}}
+                  placeholder="Find in liked songs"
+                  onChangeText={setSearchText}
+                  onSubmitEditing={handleSearch}
+                />
+              </Pressable>
             </Pressable>
-          </Pressable>
+          </View>
 
-          <View style={{height: 50}} />
+          <View style={{height: 20}} />
 
           <View style={{marginHorizontal: 10}}>
             <Text style={{color: 'white', fontSize: 18, fontWeight: 'bold'}}>
               Liked Songs
             </Text>
             <Text style={{color: 'white', fontSize: 13, marginTop: 5}}>
-              430 Songs
+              {searchedTracks.length} Songs
             </Text>
           </View>
 
-          <Pressable
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginHorizontal: 10,
-            }}>
-            <Pressable
-              style={{
-                width: 30,
-                height: 30,
-                backgroundColor: '#1db954',
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderRadius: 15,
-              }}>
-              <ArrowDown size="20" color="white" />
-            </Pressable>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 10,
-              }}>
-              <ShieldCross size="30" color="#1db954" />
-              <Pressable
-                style={{
-                  width: 60,
-                  height: 60,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 30,
-                  backgroundColor: '#1db954',
-                }}>
-                <Play size={24} color="white" variant="Bold" />
-              </Pressable>
-            </View>
-          </Pressable>
-          {/* {searchedTracks.length === 0 ? (
+          {loading ? (
             <ActivityIndicator size={'large'} color={'gray'} />
           ) : (
             <FlatList
               data={searchedTracks}
-              renderItem={({item}) => <SongItem />}
+              keyExtractor={item => item.track.key}
+              style={{marginTop: 10}}
+              renderItem={({item}) => (
+                <Pressable onPress={() => handlePlay(item)}>
+                  <View style={styles.trackContainer}>
+                    <Image
+                      source={{uri: item.track.images.coverart}}
+                      style={styles.albumCover}
+                    />
+                    <View style={styles.trackInfo}>
+                      <Text style={styles.trackName}>{item.track.title}</Text>
+                      <Text style={styles.albumName}>
+                        {item.track.subtitle}
+                      </Text>
+                    </View>
+                    <Play size={24} color="white" variant="Bold" />
+                  </View>
+                </Pressable>
+              )}
             />
-          )} */}
+          )}
         </ScrollView>
       </LinearGradient>
-      <Pressable
-        onPress={() => setModalVisible(!modalVisible)}
-        style={{
-          backgroundColor: '#5072a7',
-          padding: 10,
-          marginLeft: 'auto',
-          marginRight: 'auto',
-          position: 'absolute',
-          left: 20,
-          bottom: 10,
-          borderRadius: 6,
-          marginBottom: 15,
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: 10,
-        }}>
-        <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
-          <Image
-            source={{
-              uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZy8-ZQYRePXWhoUH0F4Ugr7pL1lMSIJUWbQ&s',
-            }}
-            style={{width: 50, height: 50}}
-          />
-          <Text
-            style={{
-              fontSize: 13,
-              width: 220,
-              color: 'white',
-              fontWeight: 'bold',
-            }}>
-            name
-          </Text>
-        </View>
-        <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
-          <Heart size="24" color="#1db954" variant="Bold" />
-          <Pressable>
-            <PauseCircle size="24" color="white" variant="Bold" />
-          </Pressable>
-        </View>
-      </Pressable>
-      {/* <Modal
+
+      <ReactNativeModal
         isVisible={modalVisible}
         onBackdropPress={() => setModalVisible(false)}
         swipeDirection="down" // modalın hangi yöne kaydırılacağını belirler
-        onSwipeComplete={() => setModalVisible(false)}
+        onSwipeComplete={() => setModalVisible(false)} //swipe ile yapılacak işlem
         style={{margin: 0}}>
-        <ModalContent
+        <View
           style={{backgroundColor: '#5072a7', width: '100%', height: '100%'}}>
           <View style={{marginTop: 40}}>
-            <Pressable
+            <View
               style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
                 alignItems: 'center',
               }}>
-              <ArrowDown2 size="24" color="white" />
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <ArrowDown2 size="24" color="white" />
+              </TouchableOpacity>
               <Text style={{fontSize: 14, fontWeight: 'bold', color: 'white'}}>
                 Song Name
               </Text>
               <More size="24" color="white" />
-            </Pressable>
+            </View>
 
             <View style={{padding: 10, marginTop: 30}}>
               <Image
@@ -317,8 +314,8 @@ const LikedSongScreen = () => {
               </View>
             </View>
           </View>
-        </ModalContent>
-      </Modal> */}
+        </View>
+      </ReactNativeModal>
     </>
   );
 };
@@ -329,5 +326,30 @@ const styles = StyleSheet.create({
   progressbar: {
     height: '100%',
     backgroundColor: 'white',
+  },
+  trackContainer: {
+    padding: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  albumCover: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  trackInfo: {
+    flex: 1,
+    marginLeft: 10,
+  },
+  trackName: {
+    fontSize: 16,
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  albumName: {
+    fontSize: 14,
+    color: '#758694',
   },
 });
