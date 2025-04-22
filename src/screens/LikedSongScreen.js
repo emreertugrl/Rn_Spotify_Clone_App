@@ -21,6 +21,7 @@ import {
   ArrowLeft,
   ArrowSquare,
   BackSquare,
+  Backward,
   Forward,
   Heart,
   More,
@@ -31,13 +32,15 @@ import {
   ShieldCross,
 } from 'iconsax-react-native';
 import {useNavigation} from '@react-navigation/native';
-import SongItem from '../components/SongItem';
 import axios from 'axios';
 import ReactNativeModal from 'react-native-modal';
+import TrackPlayer, {Capability, useProgress} from 'react-native-track-player';
 
 const LikedSongScreen = () => {
+  const progress = useProgress();
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState('Türkiye de Popüler Müzikler');
+  const [selectedTrack, setSelectedTrack] = useState(null);
   const [searchedTracks, setSearchedTracks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -70,9 +73,37 @@ const LikedSongScreen = () => {
     }
   };
 
+  const setupPlayer = async () => {
+    try {
+      /*
+       * `TrackPlayer` kütüphanesinin oynatıcıyı kurmasını sağlar.Bu işlem, oynatıcıyı başlatmak için
+       * gerekli olan yapılandırmayı sağlar.
+       */
+      await TrackPlayer.setupPlayer();
+      TrackPlayer.updateOptions({
+        //* Oynatıcının sahip olacağı özellikleri belirler
+        capabilities: [
+          TrackPlayer.CAPABILITY_PLAY, // Oynatma işlemi yapabilmesi için kullanırız
+          TrackPlayer.CAPABILITY_PAUSE, // Oynatıcıda duraklatma işlemi için kullanırız
+          TrackPlayer.CAPABILITY_STOP, // Oynatıcıda durdurma işlemi için kullanırız
+          TrackPlayer.CAPABILITY_SKIP_TO_NEXT, // Oynatıcıda bir sonraki müziği geçiş yapabilmesi için kullanılır
+          TrackPlayer.CAPABILITY_SKIP_TO_PREVIOUS, // Oynatıcıda bir önceki müziğe geçiş yapabilmesi için kullanılır
+          TrackPlayer.CAPABILITY_SEEK_TO, // Belirli bir zamana atlama
+        ],
+        compactCapabilities: [
+          TrackPlayer.CAPABILITY_PLAY,
+          TrackPlayer.CAPABILITY_PAUSE,
+          TrackPlayer.CAPABILITY_SKIP_TO_NEXT,
+          TrackPlayer.CAPABILITY_SKIP_TO_PREVIOUS,
+        ],
+      });
+    } catch (error) {
+      console.log('Error setting up player:', error);
+    }
+  };
+
   const handlePlay = async track => {
     console.log('Tıklandı', track);
-    console.log(modalVisible);
     const trackData = {
       id: track.track.key,
       url: track.track.hub.actions.find(action => action.type === 'uri').uri, // ses dosyasının urli
@@ -81,20 +112,49 @@ const LikedSongScreen = () => {
       artwork: track.track.images.coverart,
     };
     try {
-      // await TrackPlayer.reset();
-      // await TrackPlayer.add(trackData);
-      // await TrackPlayer.play();
-      // setSelectedTrack(track.track);
+      await TrackPlayer.reset(); // önce kaydedilen veri varsa resetlenir
+      await TrackPlayer.add(trackData); // çalacak olan müzik eklenir
+      await TrackPlayer.play(); // oynatmaya başlanır ( ilk başta setupPlayer oluşturulur)
+      setSelectedTrack(track.track);
       setModalVisible(true);
       setIsPlaying(true);
     } catch (error) {
       console.log(error);
     }
   };
-
   useEffect(() => {
     handleSearch();
+    setupPlayer();
   }, []);
+
+  const formatTime = seconds => {
+    // toplam saniyeyi dakikaya çevir
+    const mins = Math.floor(seconds / 60);
+    // toplam saniye sayısından geriye kalan saniyeyi hesaplar
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
+  const togglePlayback = async () => {
+    if (isPlaying) {
+      //* Müzik oynatılıyorsa durdur
+      await TrackPlayer.pause();
+    } else {
+      //* Müzik duruyorsa oynat
+      await TrackPlayer.play();
+    }
+    //* isPlaying değerini oynatma ve durdurma butonuna basıldığında tam tersi değerine çevir
+    setIsPlaying(!isPlaying);
+  };
+  //* Oynatılan müziği 10 saniye positiona göre geri aldık
+  const seekBackward = async () => {
+    const position = await TrackPlayer.getPosition();
+    await TrackPlayer.seekTo(position - 10);
+  };
+  const seekForward = async () => {
+    const position = await TrackPlayer.getPosition();
+    await TrackPlayer.seekTo(position + 10);
+  };
 
   return (
     <>
@@ -200,8 +260,8 @@ const LikedSongScreen = () => {
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <ArrowDown2 size="24" color="white" />
               </TouchableOpacity>
-              <Text style={{fontSize: 14, fontWeight: 'bold', color: 'white'}}>
-                Song Name
+              <Text style={{fontSize: 20, fontWeight: 'bold', color: 'white'}}>
+                {selectedTrack?.title}
               </Text>
               <More size="24" color="white" />
             </View>
@@ -209,7 +269,7 @@ const LikedSongScreen = () => {
             <View style={{padding: 10, marginTop: 30}}>
               <Image
                 source={{
-                  uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZy8-ZQYRePXWhoUH0F4Ugr7pL1lMSIJUWbQ&s',
+                  uri: selectedTrack?.images.coverart,
                 }}
                 style={{
                   borderRadius: 20,
@@ -226,9 +286,11 @@ const LikedSongScreen = () => {
                 <View>
                   <Text
                     style={{fontSize: 18, fontWeight: 'bold', color: 'white'}}>
-                    Name
+                    {selectedTrack?.title}
                   </Text>
-                  <Text style={{color: '#d3d3d3', marginTop: 4}}>Singer</Text>
+                  <Text style={{color: '#d3d3d3', marginTop: 4}}>
+                    {selectedTrack?.subtitle}
+                  </Text>
                 </View>
                 <Heart size={24} color="#1db954" variant="Bold" />
               </View>
@@ -244,7 +306,16 @@ const LikedSongScreen = () => {
                     backgroundColor: 'gray',
                     borderRadius: 5,
                   }}>
-                  <View style={[styles.progressbar, {width: 1 * 100}]} />
+                  <View
+                    style={[
+                      styles.progressbar,
+                      {
+                        width: `${
+                          (progress.position / progress.duration) * 100
+                        }%`,
+                      },
+                    ]}
+                  />
                   <View
                     style={{
                       position: 'absolute',
@@ -253,7 +324,7 @@ const LikedSongScreen = () => {
                       height: 10,
                       backgroundColor: 'white',
                       borderRadius: 5,
-                      left: 100,
+                      left: `${(progress.position / progress.duration) * 100}%`,
                     }}
                   />
                 </View>
@@ -264,8 +335,14 @@ const LikedSongScreen = () => {
                     justifyContent: 'space-between',
                     alignItems: 'center',
                   }}>
-                  <Text style={{color: 'white', fontSize: 15}}>00:00</Text>
-                  <Text style={{color: 'white', fontSize: 15}}>00:00</Text>
+                  <Text style={{color: 'white', fontSize: 15}}>
+                    {' '}
+                    {formatTime(progress.position)}
+                  </Text>
+                  <Text style={{color: 'white', fontSize: 15}}>
+                    {' '}
+                    {formatTime(progress.duration)}
+                  </Text>
                 </View>
                 <View
                   style={{
@@ -274,28 +351,18 @@ const LikedSongScreen = () => {
                     alignItems: 'center',
                     marginTop: 17,
                   }}>
-                  <Pressable>
-                    <ArrowSquare size="30" color="#03c03c" />
+                  <Pressable onPress={seekBackward}>
+                    <Backward size="30" color="white" variant="Bold" />
                   </Pressable>
                   <Pressable>
                     <BackSquare size="30" color="white" variant="Bold" />
                   </Pressable>
 
-                  <Pressable>
+                  <Pressable onPress={togglePlayback}>
                     {isPlaying ? (
                       <PauseCircle size="60" color="white" variant="Bold" />
                     ) : (
-                      <Pressable
-                        style={{
-                          backgroundColor: 'white',
-                          width: 60,
-                          height: 60,
-                          borderRadius: 30,
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                        }}>
-                        <Play size="30" color="black" variant="Bold" />
-                      </Pressable>
+                      <Play size="60" color="white" variant="Bold" />
                     )}
                   </Pressable>
 
@@ -307,8 +374,8 @@ const LikedSongScreen = () => {
                     />
                   </Pressable>
 
-                  <Pressable>
-                    <Repeat size="30" color="#03c03c" />
+                  <Pressable onPress={seekForward}>
+                    <Forward size="30" color="white" variant="Bold" />
                   </Pressable>
                 </View>
               </View>
